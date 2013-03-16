@@ -1,5 +1,8 @@
 package entities;
 
+import items.Equipment;
+import items.Inventory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -29,9 +32,13 @@ public abstract class EntityLiving extends Entity {
 	protected int intelligence;
 	protected int health;
 	private Random random = new Random();
+	private Inventory inventory;
+	private Equipment equipment;
 
 	public EntityLiving(Room r) {
 		super(r);
+		inventory = new Inventory();
+		setEquipment(new Equipment());
 		setSpawn(r);
 	}
 
@@ -59,72 +66,141 @@ public abstract class EntityLiving extends Entity {
 		attacked = b;
 	}
 
-	public int getDamage() {
+	public int getDamage(boolean type) {
 		int dam = 0;
-		switch (strength) {
-		case 1:
-			dam = random.nextInt(6) - 5;
-			break;
-		case 2:
-			dam = random.nextInt(6) - 5;
-			break;
-		case 3:
-			dam = random.nextInt(6) - 4;
-			break;
-		case 4:
-			dam = random.nextInt(6) - 4;
-			break;
-		case 5:
-			dam = random.nextInt(6) - 3;
-			break;
-		case 6:
-			dam = random.nextInt(6) - 3;
-			break;
-		case 7:
-			dam = random.nextInt(6) - 2;
-			break;
-		case 8:
-			dam = random.nextInt(6) - 2;
-			break;
-		case 9:
-			dam = random.nextInt(6) - 1;
-			break;
-		case 10:
-			dam = random.nextInt(6) - 1;
-			break;
-		case 11:
-			dam = random.nextInt(6);
-			break;
-		case 12:
-			dam = random.nextInt(6);
-			break;
-		case 13:
-			dam = random.nextInt(6) + 1;
-			break;
-		case 14:
-			dam = random.nextInt(6) + 1;
-			break;
-		case 15:
-			dam = random.nextInt(6) + 2;
-			break;
-		case 16:
-			dam = random.nextInt(6) + 2;
-			break;
-		case 17:
-			dam = random.nextInt(6) + 3;
-			break;
-		case 18:
-			dam = random.nextInt(6) + 3;
-			break;
-		case 19:
-			dam = (random.nextInt(6) + 1) * (random.nextInt(6) + 1) - 1;
-			break;
-		case 20:
-			dam = (random.nextInt(6) + 1) * (random.nextInt(6) + 1) - 1;
-			break;
+		if (type) {
+			switch (strength) {
+			case 1:
+				dam = random.nextInt(6) - 5;
+				break;
+			case 2:
+				dam = random.nextInt(6) - 5;
+				break;
+			case 3:
+				dam = random.nextInt(6) - 4;
+				break;
+			case 4:
+				dam = random.nextInt(6) - 4;
+				break;
+			case 5:
+				dam = random.nextInt(6) - 3;
+				break;
+			case 6:
+				dam = random.nextInt(6) - 3;
+				break;
+			case 7:
+				dam = random.nextInt(6) - 2;
+				break;
+			case 8:
+				dam = random.nextInt(6) - 2;
+				break;
+			case 9:
+				dam = random.nextInt(6) - 1;
+				break;
+			case 10:
+				dam = random.nextInt(6) - 1;
+				break;
+			case 11:
+				dam = random.nextInt(6);
+				break;
+			case 12:
+				dam = random.nextInt(6);
+				break;
+			case 13:
+				dam = random.nextInt(6) + 1;
+				break;
+			case 14:
+				dam = random.nextInt(6) + 1;
+				break;
+			case 15:
+				dam = random.nextInt(6) + 2;
+				break;
+			case 16:
+				dam = random.nextInt(6) + 2;
+				break;
+			case 17:
+				dam = random.nextInt(6) + 3;
+				break;
+			case 18:
+				dam = random.nextInt(6) + 3;
+				break;
+			case 19:
+				dam = random.nextInt(6) + random.nextInt(6) + 1;
+				break;
+			case 20:
+				dam = random.nextInt(6) + random.nextInt(6) + 1;
+				break;
+			}
+			dam += getEquipment().getRighthand().getModstr();
+		}
+		else
+		{
+			switch (strength) {
+			case 1:
+				dam = random.nextInt(6) - 4;
+				break;
+			case 2:
+				dam = random.nextInt(6) - 4;
+				break;
+			case 3:
+				dam = random.nextInt(6) - 3;
+				break;
+			case 4:
+				dam = random.nextInt(6) - 3;
+				break;
+			case 5:
+				dam = random.nextInt(6) - 2;
+				break;
+			case 6:
+				dam = random.nextInt(6) - 2;
+				break;
+			case 7:
+				dam = random.nextInt(6) - 1;
+				break;
+			case 8:
+				dam = random.nextInt(6) - 1;
+				break;
+			case 9:
+				dam = random.nextInt(6);
+				break;
+			case 10:
+				dam = random.nextInt(6) + 1;
+				break;
+			case 11:
+				dam = random.nextInt(6) + 2;
+				break;
+			case 12:
+				dam = random.nextInt(6) + 3;
+				break;
+			case 13:
+				dam = random.nextInt(6) + random.nextInt(6) + 1;
+				break;
+			case 14:
+				dam = random.nextInt(6) + random.nextInt(6) + 2;
+				break;
+			case 15:
+				dam = random.nextInt(6) + random.nextInt(6) + 3;
+				break;
+			case 16:
+				dam = random.nextInt(6) + random.nextInt(6) + 3;
+				break;
+			case 17:
+				dam = random.nextInt(6) + random.nextInt(6) + random.nextInt(6) + 2;
+				break;
+			case 18:
+				dam = random.nextInt(6) + random.nextInt(6) + random.nextInt(6) + 3;
+				break;
+			case 19:
+				dam = random.nextInt(6) + random.nextInt(6) + random.nextInt(6) + 4;
+				break;
+			case 20:
+				dam = random.nextInt(6) + random.nextInt(6) + random.nextInt(6) + 5;
+				break;
+			}
+			dam += getEquipment().getRighthand().getModamp();
 		}
 		System.out.println(dam);
-		return dam>=0?dam:0;
+		return dam >= 0 ? dam : 0;
 	}
 
 	public int getHpcur() {
@@ -156,14 +232,12 @@ public abstract class EntityLiving extends Entity {
 			if (!e.isDead() && !e.isUnconscious()) {
 				TextCollector.Add("<font color=white>" + Name + " ударил по "
 						+ e.getName() + "<br>\n");
-				e.damage(getDamage());
+				e.damage(getDamage(random.nextBoolean()));
 			} else
 				setAttacking(false);
 		}
 
 	}
-	
-
 
 	public void damage(int dam) {
 		if (!imortal) {
@@ -274,6 +348,22 @@ public abstract class EntityLiving extends Entity {
 
 	public void setEnemies(List<EntityLiving> enemies) {
 		this.enemies = enemies;
+	}
+
+	public Inventory getInventory() {
+		return inventory;
+	}
+
+	public void setInventory(Inventory inventory) {
+		this.inventory = inventory;
+	}
+
+	public Equipment getEquipment() {
+		return equipment;
+	}
+
+	public void setEquipment(Equipment equipment) {
+		this.equipment = equipment;
 	}
 
 }

@@ -1,7 +1,7 @@
 package entities;
 
-import utils.MobType;
-import utils.Trigger;
+import items.*;
+import utils.*;
 import gameworld.Room;
 
 public class Player extends EntityLiving {
@@ -18,6 +18,7 @@ public class Player extends EntityLiving {
 		health = 15;
 		hpmax = health;
 		hpcur = hpmax;
+		getEquipment().setRighthand(new Sword());
 	}
 
 	
