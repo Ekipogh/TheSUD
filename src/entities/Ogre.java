@@ -15,7 +15,7 @@ public class Ogre extends EntityLiving {
 		strength = 8;
 		health = 13;
 		hpmax = health;
-		hpcur = hpmax;
+		setHpcur(hpmax);
 	}
 
 }

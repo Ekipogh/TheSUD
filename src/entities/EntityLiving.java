@@ -13,7 +13,7 @@ import gameworld.Room;
 
 public abstract class EntityLiving extends Entity {
 
-	protected int hpcur;
+	private int hpcur;
 	protected int hpmax;
 	protected boolean isDead;
 	protected boolean attacked;
@@ -241,13 +241,13 @@ public abstract class EntityLiving extends Entity {
 
 	public void damage(int dam) {
 		if (!imortal) {
-			if (hpcur > 0) {
-				hpcur -= dam;
+			if (getHpcur() > 0) {
+				setHpcur(getHpcur() - dam);
 				if (isUnconscious() || isDead())
 					System.err.println("shmip");
 				TextCollector.Add("<font color=white>Здоровье: " + Name + " "
 						+ getHealthHTML() + "<br>\n");
-				if (hpcur <= 0 && this.getClass() != Player.class) {
+				if (getHpcur() <= 0 && this.getClass() != Player.class) {
 					if (!cantdie) {
 						isDead = true;
 						if (attacked)
@@ -264,7 +264,7 @@ public abstract class EntityLiving extends Entity {
 						setUnconscious(true);
 						setUnconscioustick(ticks);
 					}
-				} else if (hpcur <= 0 && this.getClass() == Player.class) {
+				} else if (getHpcur() <= 0 && this.getClass() == Player.class) {
 					TextCollector
 							.Add("<font color=yellow>Вы бессознания. Вы придете в себя через 10 сек<br>\n");
 					setRoom(spawn); // TODO change to respawn
@@ -279,7 +279,7 @@ public abstract class EntityLiving extends Entity {
 			}
 		} else
 			TextCollector.Add("<font color=yellow>" + Name
-					+ " не пострадал. Он бесмертнный же..<br>\n");
+					+ "совершенно не пострадал.<br>\n");
 	}
 
 	public EntityLiving getAttacker() {
@@ -315,13 +315,13 @@ public abstract class EntityLiving extends Entity {
 	}
 
 	public String getHealthHTML() {
-		if (hpcur >= hpmax * 0.80)
+		if (getHpcur() >= hpmax * 0.80)
 			return "<font color=#006400>Отличное";
-		else if (hpcur >= hpmax * 0.60 && hpcur < hpmax * 0.80)
+		else if (getHpcur() >= hpmax * 0.60 && getHpcur() < hpmax * 0.80)
 			return "<font color=green>Хорошее";
-		else if (hpcur >= hpmax * 0.40 && hpcur < hpmax * 0.60)
+		else if (getHpcur() >= hpmax * 0.40 && getHpcur() < hpmax * 0.60)
 			return "<font color=yellow>Хорошее";
-		else if (hpcur >= hpmax * 0.20 && hpcur < hpmax * 0.40)
+		else if (getHpcur() >= hpmax * 0.20 && getHpcur() < hpmax * 0.40)
 			return "<font color=red>Плохое";
 		else
 			return "<font color=#8b0000>Плохое";
@@ -364,6 +364,10 @@ public abstract class EntityLiving extends Entity {
 
 	public void setEquipment(Equipment equipment) {
 		this.equipment = equipment;
+	}
+
+	public void setHpcur(int hpcur) {
+		this.hpcur = hpcur;
 	}
 
 }

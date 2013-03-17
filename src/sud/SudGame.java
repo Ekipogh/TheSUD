@@ -3,6 +3,8 @@ package sud;
 import entities.*;
 import gameworld.Room;
 
+import items.*;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -14,19 +16,18 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-import utils.TextCollector;
-import utils.Trigger;
+import utils.*;
 
 public class SudGame {
 
 	public static List<Entity> entities = new ArrayList<Entity>();
+	public static List<Item> items = new ArrayList<Item>();
 	public static List<Room> rooms = new ArrayList<Room>();
 	public static Window w;
 	public static Player p;
 	private static boolean running = true;
 	private static String[] commands;
 	private static int[] triggers;
-	
 
 	public static void main(String[] args) {
 		w = new Window();
@@ -36,7 +37,7 @@ public class SudGame {
 		entities.add(new Ogre(rooms.get(2)));
 		entities.add(new Ogre(rooms.get(2)));
 		entities.add(new OldMan(rooms.get(0)));
-
+		items.add(new Sword().setRoom(rooms.get(0)));
 		Trigger.trig(0);
 		commands = new String[4];
 		commands[0] = "север";
@@ -55,7 +56,7 @@ public class SudGame {
 				proceed();
 			}
 		});
-		
+
 		new Thread(new Runnable() {
 			public void run() {
 				while (running) {
@@ -73,11 +74,12 @@ public class SudGame {
 					for (Entity e : entities) {
 						e.tick();
 					}
-					//TODO maybe text collector class. Collectronus 2013
-//					System.out.println(w.out.getDocument().getLength());
-					if(!TextCollector.isEmpty()) w.out.addString(TextCollector.Get());
+					// TODO maybe text collector class. Collectronus 2013
+					// System.out.println(w.out.getDocument().getLength());
+					if (!TextCollector.isEmpty())
+						w.out.addString(TextCollector.Get());
 					TextCollector.Clear();
-//					w.out.setCaretPosition(w.out.getDocument().getLength());
+					// w.out.setCaretPosition(w.out.getDocument().getLength());
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e1) {
@@ -91,17 +93,21 @@ public class SudGame {
 		}).start();
 
 	}
-	
-	private static void proceed()
-	{
+
+	private static void proceed() {
 		String[] command = w.input.getText().split(" ");
 		if (command.length == 1 && !command[0].isEmpty()) {
-			if ("смотреть".startsWith(command[0].toLowerCase()) && !command[0].toLowerCase().equals("с"))
+			if ("смотреть".startsWith(command[0].toLowerCase())
+					&& !command[0].toLowerCase().equals("с"))
 				Trigger.trig(0);
-			else if("хватит".startsWith(command[0].toLowerCase()))
-			{
+			else if ("хватит".startsWith(command[0].toLowerCase())) {
 				p.setAttacking(false);
 				p.getEnemies().clear();
+			} else if ("инвентарь".startsWith(command[0].toLowerCase())) {
+				TextCollector.Add(p.getInventory().toString());
+			}
+			else if ("экипировка".startsWith(command[0].toLowerCase())) {
+				TextCollector.Add(p.getEquipment().toString());
 			}
 			else {
 				boolean found = false;
@@ -118,24 +124,43 @@ public class SudGame {
 			}
 		} else if (command.length == 2) {
 			if ("убить".startsWith(command[0].toLowerCase())) {
+				if ("себя".startsWith(command[1].toLowerCase())) {
+					Script.script(0, p);
+				} else {
+					boolean found = false;
+					for (Entity ent : entities) {
+						if (ent instanceof EntityLiving
+								&& ent.getName().startsWith(
+										command[1].toLowerCase())
+								&& ent.getRoom() == p.getRoom()) {
+							found = true;
+							p.attack((EntityLiving) ent);
+							break;
+						}
+					}
+					if (!found)
+						TextCollector.Add("<font color=white>Убить кого?<br>");
+				}
+			} else if ("взять".contains(command[0].toLowerCase())) {
 				boolean found = false;
-				for (Entity ent : entities) {
-					if (ent instanceof EntityLiving
-							&& ent.getName().startsWith(
-									command[1].toLowerCase())
-							&& ent.getRoom() == p.getRoom()) {
+				for (Item item : items) {
+					if (item.getName().startsWith(command[1].toLowerCase())
+							&& item.getRoom() == p.getRoom()) {
 						found = true;
-						p.attack((EntityLiving) ent);
+						if (p.getInventory().addItem(item)) {
+							item.setRoom(null);
+							TextCollector.Add("<font color=white>Вы положили "
+									+ item.getName() + " в свой рюкзак<br>");
+						}
 						break;
 					}
 				}
 				if (!found)
-					TextCollector.Add("<font color=white>Убить кого?<br>");
+					TextCollector.Add("<font color=white>Взять что?<br>");
 			} else {
 				boolean found = false;
 				for (Entity e1 : entities) {
-					if (e1.getName().startsWith(
-							command[1].toLowerCase())
+					if (e1.getName().startsWith(command[1].toLowerCase())
 							&& e1.getRoom() == p.getRoom()) {
 						found = true;
 						e1.command(command[0]);
@@ -157,7 +182,7 @@ public class SudGame {
 	}
 
 	private static void setUpTrigger() {
-//		Trigger.setInput(w.input);
+		// Trigger.setInput(w.input);
 		Trigger.setPlayer(p);
 		Trigger.setEntities(entities);
 	}

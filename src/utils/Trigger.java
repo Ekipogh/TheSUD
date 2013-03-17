@@ -1,9 +1,12 @@
 package utils;
 
+import items.Item;
+
 import java.util.List;
 
 import javax.swing.JTextField;
 import sud.MyTextPane;
+import sud.SudGame;
 
 import entities.Entity;
 import entities.Player;
@@ -11,7 +14,7 @@ import entities.Player;
 public class Trigger {
 //	private static JTextField input;
 	private static List<Entity> entities;
-
+	private static List<Item> items = SudGame.items;
 	private static Player p;
 	static final int NORTH = 0;
 	static final int SOUTH = 1;
@@ -36,6 +39,11 @@ public class Trigger {
 				if (e != p && e.getRoom() == p.getRoom())
 					TextCollector.Add("<font color = red>" + e.getName()
 							+ " стоит здесь.<br>\n");
+			}
+			for (Item item : items) {
+				if (item.getRoom() == p.getRoom())
+					TextCollector.Add("<font color = red>" + item.getName()
+							+ " лежит здесь.<br>\n");
 			}
 			break;
 		case 1:

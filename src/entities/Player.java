@@ -9,7 +9,7 @@ public class Player extends EntityLiving {
 	public Player(Room r) {
 		super(r);
 		Name = "игрок";
-		commands = new String[1];
+		commands = new String[2];
 		commands[0] = "пнуть";
 		triggers = new int[1];
 		triggers[0] = 5;
@@ -17,7 +17,7 @@ public class Player extends EntityLiving {
 		strength = 11;
 		health = 15;
 		hpmax = health;
-		hpcur = hpmax;
+		setHpcur(hpmax);
 		getEquipment().setRighthand(new Sword());
 	}
 
@@ -29,8 +29,8 @@ public class Player extends EntityLiving {
 			Trigger.trig(0);
 		}
 		// TODO healing
-		if (hpcur < hpmax && ticks % (int) (60 / hpmax) == 0 && !isAttacking()
+		if (getHpcur() < hpmax && ticks % (int) (60 / hpmax) == 0 && !isAttacking()
 				&& !isUnconscious())
-			hpcur++;
+			setHpcur(getHpcur() + 1);
 	}
 }
