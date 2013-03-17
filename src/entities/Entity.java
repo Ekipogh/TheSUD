@@ -43,7 +43,7 @@ public abstract class Entity {
 			for (int i = 0; i < commands.length; i++) {
 				if (commands[i].startsWith(c.toLowerCase())) {
 					found = true;
-					Trigger.trig(triggers[i]);
+					Trigger.trig(triggers[i],this);
 					break;
 				}
 			}

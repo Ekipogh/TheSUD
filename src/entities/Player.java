@@ -1,6 +1,6 @@
 package entities;
 
-import items.*;
+//import items.*;
 import utils.*;
 import gameworld.Room;
 
@@ -18,7 +18,7 @@ public class Player extends EntityLiving {
 		health = 15;
 		hpmax = health;
 		setHpcur(hpmax);
-		getEquipment().setRighthand(new Sword());
+//		getEquipment().setRighthand(new Sword());
 	}
 
 	
@@ -26,7 +26,7 @@ public class Player extends EntityLiving {
 		super.tick();
 		if (isUnconscious() && ticks - getUnconscioustick() == 10) {
 			setUnconscious(false);
-			Trigger.trig(0);
+			Trigger.trig(0,null);
 		}
 		// TODO healing
 		if (getHpcur() < hpmax && ticks % (int) (60 / hpmax) == 0 && !isAttacking()

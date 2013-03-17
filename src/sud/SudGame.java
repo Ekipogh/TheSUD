@@ -34,11 +34,14 @@ public class SudGame {
 
 		loadRooms();
 		loadPlayer();
+
+		// TODO load save or whatever..
 		entities.add(new Ogre(rooms.get(2)));
 		entities.add(new Ogre(rooms.get(2)));
 		entities.add(new OldMan(rooms.get(0)));
+		entities.add(new DangeonDoor(rooms.get(1)));
 		items.add(new Sword().setRoom(rooms.get(0)));
-		Trigger.trig(0);
+		Trigger.trig(0, null);
 		commands = new String[4];
 		commands[0] = "север";
 		commands[1] = "юг";
@@ -65,10 +68,11 @@ public class SudGame {
 					for (Iterator<Entity> iter = entities.iterator(); iter
 							.hasNext();) {
 						Object elem = iter.next();
-						if (((EntityLiving) elem).isDead()
-								&& !(elem instanceof Player)) {
-							toRemove.add((Entity) elem);
-						}
+						if (elem.getClass() == EntityLiving.class)
+							if (((EntityLiving) elem).isDead()
+									&& !(elem instanceof Player)) {
+								toRemove.add((Entity) elem);
+							}
 					}
 					entities.removeAll(toRemove);
 					for (Entity e : entities) {
@@ -99,22 +103,20 @@ public class SudGame {
 		if (command.length == 1 && !command[0].isEmpty()) {
 			if ("смотреть".startsWith(command[0].toLowerCase())
 					&& !command[0].toLowerCase().equals("с"))
-				Trigger.trig(0);
+				Trigger.trig(0, null);
 			else if ("хватит".startsWith(command[0].toLowerCase())) {
 				p.setAttacking(false);
 				p.getEnemies().clear();
 			} else if ("инвентарь".startsWith(command[0].toLowerCase())) {
 				TextCollector.Add(p.getInventory().toString());
-			}
-			else if ("экипировка".startsWith(command[0].toLowerCase())) {
+			} else if ("экипировка".startsWith(command[0].toLowerCase())) {
 				TextCollector.Add(p.getEquipment().toString());
-			}
-			else {
+			} else {
 				boolean found = false;
 				for (int i = 0; i < commands.length; i++) {
 					if (commands[i].startsWith(command[0].toLowerCase())) {
 
-						Trigger.trig(triggers[i]);
+						Trigger.trig(triggers[i], null);
 						found = true;
 						break;
 					}
@@ -141,7 +143,7 @@ public class SudGame {
 					if (!found)
 						TextCollector.Add("<font color=white>Убить кого?<br>");
 				}
-			} else if ("взять".contains(command[0].toLowerCase())) {
+			} else if ("взять".startsWith(command[0].toLowerCase())) {
 				boolean found = false;
 				for (Item item : items) {
 					if (item.getName().startsWith(command[1].toLowerCase())
@@ -157,6 +159,20 @@ public class SudGame {
 				}
 				if (!found)
 					TextCollector.Add("<font color=white>Взять что?<br>");
+			} else if ("вооружиться".startsWith(command[0].toLowerCase())) {
+				Item toEquip = p.getInventory().getItem(
+						command[1].toLowerCase());
+				Item Equiped = p.getEquipment().getRighthand();
+				if (toEquip != null) {
+					Item tmp = toEquip;
+					toEquip = Equiped;
+					Equiped = tmp;
+					p.getEquipment().setRighthand((Weapon) Equiped);
+					TextCollector.Add("<font color=white>Вы взяли "
+							+ Equiped.Имя() + " в правую руку<br></font>");
+				} else
+					TextCollector
+							.Add("<font color=white>Предмет не найден<br></font>");
 			} else {
 				boolean found = false;
 				for (Entity e1 : entities) {

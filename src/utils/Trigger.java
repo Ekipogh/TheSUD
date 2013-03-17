@@ -27,7 +27,7 @@ public class Trigger {
 		Trigger.p = p;
 	}
 
-	public static void trig(int n) {
+	public static void trig(int n,Object caller) {
 		switch (n) {
 		case 0:
 			TextCollector.Add("<font color=white>" + p.getRoom().getName()
@@ -49,28 +49,28 @@ public class Trigger {
 		case 1:
 			if (p.getRoom().getExit(NORTH) != null) {
 				p.setRoom(p.getRoom().getExit(NORTH));
-				Trigger.trig(0);
+				Trigger.trig(0,null);
 			} else
 				TextCollector.Add("<font color=white>Пойти куда?<br>\n");
 			break;
 		case 2:
 			if (p.getRoom().getExit(SOUTH) != null) {
 				p.setRoom(p.getRoom().getExit(SOUTH));
-				Trigger.trig(0);
+				Trigger.trig(0,null);
 			} else
 				TextCollector.Add("<font color=white>Пойти куда?<br>\n");
 			break;
 		case 3:
 			if (p.getRoom().getExit(EAST) != null) {
 				p.setRoom(p.getRoom().getExit(EAST));
-				Trigger.trig(0);
+				Trigger.trig(0,null);
 			} else
 				TextCollector.Add("<font color=white>Пойти куда?<br>\n");
 			break;
 		case 4:
 			if (p.getRoom().getExit(WEST) != null) {
 				p.setRoom(p.getRoom().getExit(WEST));
-				Trigger.trig(0);
+				Trigger.trig(0,null);
 			} else
 				TextCollector.Add("<font color=white>Пойти куда?<br>\n");
 			break;
@@ -79,6 +79,9 @@ public class Trigger {
 			break;
 		case 6:
 			TextCollector.Add("<font color=white>Старик: говорит \"приветствие игрока\"<br>\n");
+			break;
+		case 7:
+			Script.script(1, caller, SudGame.rooms.get(1));
 			break;
 		default:
 			TextCollector.Add("Упс нет такого тригера Trigger number = " + n + "\n");

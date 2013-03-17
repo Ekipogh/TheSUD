@@ -23,7 +23,7 @@ public class Room {
 			if(commands[i].startsWith(c.toLowerCase()))
 			{
 				found = true;
-				Trigger.trig(triggers[i]);
+				Trigger.trig(triggers[i],this);
 			}
 		}
 		if(!found) TextCollector.Add("<font color = white>Что?<br>\n");
@@ -54,5 +54,8 @@ public class Room {
 	}
 	public void setName(String name) {
 		this.name = name;
+	}
+	public void setExit(int i, Room ex) {
+		exits[0] = ex;
 	}
 }

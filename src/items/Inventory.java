@@ -35,4 +35,10 @@ public class Inventory {
 		}
 		return inv+"</font>";
 	}
+
+	public Item getItem(String name) {
+		for(Item i :slots)
+			if(i.Èìÿ().equals(name)) return i;
+		return null;
+	}
 }
