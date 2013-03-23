@@ -33,12 +33,14 @@ public class Inventory {
 			if (i != null)
 				inv += i.getName() + "<br>";
 		}
-		return inv+"</font>";
+		return inv + "</font>";
 	}
 
 	public Item getItem(String name) {
-		for(Item i :slots)
-			if(i.Имя().equals(name)) return i;
+		for (Item i : slots)
+			if (i != null)
+				if (i.Имя().equals(name))
+					return i;
 		return null;
 	}
 }

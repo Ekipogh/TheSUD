@@ -1,18 +1,16 @@
 package entities;
 
-import sud.MyTextPane;
-import sud.SudGame;
 import utils.TextCollector;
 import utils.Trigger;
 import gameworld.Room;
 
-public abstract class Entity {
+public abstract class Entity implements SUDObject{
 	private Room r;
 	protected String Name;
 	protected int ticks;
-	protected MyTextPane out;
 	protected String[] commands;
 	protected int[] triggers;
+	private String description;
 
 	public String getName() {
 		return Name;
@@ -22,10 +20,11 @@ public abstract class Entity {
 		Name = name;
 	}
 
+	public Entity() {
+	}
 	public Entity(Room r) {
 		super();
 		this.ticks = 0;
-		out = SudGame.w.out;
 		this.setRoom(r);
 	}
 
@@ -53,6 +52,10 @@ public abstract class Entity {
 	}
 
 	public void tick() {
+	}
+
+	public String getDescription() {
+		return description;
 	}
 
 	

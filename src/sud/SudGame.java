@@ -8,6 +8,7 @@ import items.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -15,7 +16,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-
 import utils.*;
 
 public class SudGame {
@@ -39,7 +39,7 @@ public class SudGame {
 		entities.add(new Ogre(rooms.get(2)));
 		entities.add(new Ogre(rooms.get(2)));
 		entities.add(new OldMan(rooms.get(0)));
-		entities.add(new DangeonDoor(rooms.get(1)));
+		entities.add(new Door(0,rooms.get(1),rooms.get(3)));
 		items.add(new Sword().setRoom(rooms.get(0)));
 		Trigger.trig(0, null);
 		commands = new String[4];
@@ -68,7 +68,7 @@ public class SudGame {
 					for (Iterator<Entity> iter = entities.iterator(); iter
 							.hasNext();) {
 						Object elem = iter.next();
-						if (elem.getClass() == EntityLiving.class)
+						if (elem instanceof EntityLiving)
 							if (((EntityLiving) elem).isDead()
 									&& !(elem instanceof Player)) {
 								toRemove.add((Entity) elem);
@@ -78,7 +78,6 @@ public class SudGame {
 					for (Entity e : entities) {
 						e.tick();
 					}
-					// TODO maybe text collector class. Collectronus 2013
 					// System.out.println(w.out.getDocument().getLength());
 					if (!TextCollector.isEmpty())
 						w.out.addString(TextCollector.Get());
@@ -173,7 +172,23 @@ public class SudGame {
 				} else
 					TextCollector
 							.Add("<font color=white>Предмет не найден<br></font>");
-			} else {
+			}
+			else if("смотреть".startsWith(command[0].toLowerCase()))
+			{
+				List<SUDObject> gameobjects = new ArrayList<SUDObject>();
+				gameobjects.addAll(entities);
+				gameobjects.addAll(items);
+				for(int i = 0;i < gameobjects.size();i++)
+				{
+					SUDObject so = gameobjects.get(i);
+					if(so.getName().startsWith(command[1].toLowerCase()))
+					{
+						TextCollector.Add("<font color=white>"+so.getDescription()+"<font><br>");
+						break;
+					}
+				}
+			}
+			else {
 				boolean found = false;
 				for (Entity e1 : entities) {
 					if (e1.getName().startsWith(command[1].toLowerCase())
@@ -191,8 +206,42 @@ public class SudGame {
 	}
 
 	static void loadPlayer() {
-		// TODO rewrite
 		p = new Player(rooms.get(0));
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(new File("saves/save1.dat")));
+			String line = null;
+			while((line = reader.readLine())!=null)
+			{
+				if(line.startsWith("name"))
+					p.setName(line.split(" ")[1]);
+				else if(line.startsWith("str"))
+					p.setStrength(Integer.parseInt(line.split(" ")[1]));
+				else if(line.startsWith("int"))
+					p.setIntelligence(Integer.parseInt(line.split(" ")[1]));
+				else if(line.startsWith("agi"))
+					p.setAgility(Integer.parseInt(line.split(" ")[1]));
+				else if(line.startsWith("hea"))
+					p.setHealth(Integer.parseInt(line.split(" ")[1]));
+				else if(line.startsWith("rh")){
+					try {
+						p.getEquipment().setRighthand((Weapon)Class.forName(line.split(" ")[1]).newInstance());
+					} catch (InstantiationException e) {
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						e.printStackTrace();
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	
 		setUpTrigger();
 		entities.add(p);
 	}

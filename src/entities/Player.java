@@ -8,14 +8,11 @@ public class Player extends EntityLiving {
 
 	public Player(Room r) {
 		super(r);
-		Name = "игрок";
 		commands = new String[2];
 		commands[0] = "пнуть";
 		triggers = new int[1];
 		triggers[0] = 5;
 		type = MobType.Agressive;
-		strength = 11;
-		health = 15;
 		hpmax = health;
 		setHpcur(hpmax);
 //		getEquipment().setRighthand(new Sword());

@@ -1,0 +1,6 @@
+name игрок
+str 11
+agi 10
+hea 15
+int 10
+rh items.Sword
