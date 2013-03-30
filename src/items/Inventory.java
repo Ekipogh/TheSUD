@@ -1,5 +1,8 @@
 package items;
 
+import java.util.Collection;
+import java.util.HashSet;
+
 public class Inventory {
 	private Item[] slots;
 
@@ -42,5 +45,22 @@ public class Inventory {
 				if (i.Èìÿ().equals(name))
 					return i;
 		return null;
+	}
+
+	public int getSlot(Item iteminaslot) {
+		for(int i=0;i<slots.length;i++)
+		{
+			if(iteminaslot == slots[i])
+				return i;
+		}
+		return -1;
+	}
+
+	public Collection<? extends Item> getAll() {
+		Collection<Item> all = new HashSet<Item>();
+		for (Item i : slots)
+			if (i != null)
+				all.add(i);
+		return all;
 	}
 }

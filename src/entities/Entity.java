@@ -27,6 +27,12 @@ public abstract class Entity implements SUDObject{
 		this.ticks = 0;
 		this.setRoom(r);
 	}
+	public Entity(Room r, String name) {
+		super();
+		this.Name = name;
+		this.ticks = 0;
+		this.setRoom(r);
+	}
 
 	public Room getRoom() {
 		return r;

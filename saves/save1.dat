@@ -3,4 +3,13 @@ str 11
 agi 10
 hea 15
 int 10
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+skill short_blades 15
+skill fighting 0
+skill karate 0
+>>>>>>> Combat update
+>>>>>>> Combat update
 rh items.Sword

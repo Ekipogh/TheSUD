@@ -1,21 +1,19 @@
 package entities;
 
-import items.Hand;
 import utils.MobType;
 import gameworld.Room;
+import items.*;
 
 public class Ogre extends EntityLiving {
 
 	public Ogre(Room r) {
 		super(r);
 		Name = "огр";
-		getEquipment().setRighthand(new Hand());
-		isDead = false;
+		getEquipment().setRighthand(new Club());
 		type = MobType.Agressive;
 		strength = 8;
-		health = 13;
-		hpmax = health;
-		setHpcur(hpmax);
+		setHealth(20);
+		getSkills().setSkill("fighting", 13);
 	}
 
 }

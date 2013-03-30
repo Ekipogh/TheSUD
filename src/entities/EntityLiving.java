@@ -1,7 +1,9 @@
 package entities;
 
 import items.Equipment;
+import items.Hand;
 import items.Inventory;
+import items.Weapon;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,8 @@ public abstract class EntityLiving extends Entity {
 	protected MobType type;
 	protected int strength;
 	protected int agility;
+	private SkillSet skills;
+
 	public int getStrength() {
 		return strength;
 	}
@@ -59,6 +63,8 @@ public abstract class EntityLiving extends Entity {
 
 	public void setHealth(int health) {
 		this.health = health;
+		hpmax = health;
+		setHpcur(hpmax);
 	}
 
 	protected int intelligence;
@@ -66,11 +72,15 @@ public abstract class EntityLiving extends Entity {
 	private Random random = new Random();
 	private Inventory inventory;
 	private Equipment equipment;
+	private float basespeed;
 
 	public EntityLiving(Room r) {
 		super(r);
+		isDead = false;
 		inventory = new Inventory();
 		setEquipment(new Equipment());
+		setSkills(new SkillSet(this));
+		equipment.setRighthand(new Hand());
 		setSpawn(r);
 	}
 
@@ -98,7 +108,7 @@ public abstract class EntityLiving extends Entity {
 		attacked = b;
 	}
 
-	public int getDamage(boolean type) {
+	private int getDamage(boolean type) {
 		int dam = 0;
 		if (type) {
 			switch (strength) {
@@ -154,7 +164,7 @@ public abstract class EntityLiving extends Entity {
 				dam = random.nextInt(6) + 3;
 				break;
 			case 18:
-				dam = random.nextInt(6) + 3;
+				dam = random.nextInt(6) + 4;
 				break;
 			case 19:
 				dam = random.nextInt(6) + random.nextInt(6) + 1;
@@ -164,9 +174,7 @@ public abstract class EntityLiving extends Entity {
 				break;
 			}
 			dam += getEquipment().getRighthand().getModstr();
-		}
-		else
-		{
+		} else {
 			switch (strength) {
 			case 1:
 				dam = random.nextInt(6) - 4;
@@ -217,16 +225,20 @@ public abstract class EntityLiving extends Entity {
 				dam = random.nextInt(6) + random.nextInt(6) + 3;
 				break;
 			case 17:
-				dam = random.nextInt(6) + random.nextInt(6) + random.nextInt(6) + 2;
+				dam = random.nextInt(6) + random.nextInt(6) + random.nextInt(6)
+						+ 2;
 				break;
 			case 18:
-				dam = random.nextInt(6) + random.nextInt(6) + random.nextInt(6) + 3;
+				dam = random.nextInt(6) + random.nextInt(6) + random.nextInt(6)
+						+ 3;
 				break;
 			case 19:
-				dam = random.nextInt(6) + random.nextInt(6) + random.nextInt(6) + 4;
+				dam = random.nextInt(6) + random.nextInt(6) + random.nextInt(6)
+						+ 4;
 				break;
 			case 20:
-				dam = random.nextInt(6) + random.nextInt(6) + random.nextInt(6) + 5;
+				dam = random.nextInt(6) + random.nextInt(6) + random.nextInt(6)
+						+ 5;
 				break;
 			}
 			dam += getEquipment().getRighthand().getModamp();
@@ -262,13 +274,226 @@ public abstract class EntityLiving extends Entity {
 	public void strike(EntityLiving e) {
 		if (type == MobType.Agressive) {
 			if (!e.isDead() && !e.isUnconscious()) {
-				TextCollector.Add("<font color=white>" + Name + " ударил по "
-						+ e.getName() + "<br>\n");
-				e.damage(getDamage(random.nextBoolean()));
+				int hit = striked(this.getEquipment().getRighthand());
+				if (hit == 1) {
+					TextCollector.Add("<font color=white>" + Name
+							+ " ударил по " + e.getName() + "<br>\n");
+					e.damage(getDamage(random.nextBoolean()));
+				} else if (hit == 2) {
+					if (!e.defended(random.nextInt(2))) {
+						e.damage(getDamage(random.nextBoolean()));
+						TextCollector.Add("<font color=white>" + Name
+								+ " критически ударил по " + e.getName()
+								+ "<br>\n");
+					} else
+						TextCollector.Add("<font color=white>" + e.getName()
+								+ " откразил атаку " + getName() + "<br>\n");
+				} else if (hit == 3) {
+					e.damage(getCritical(random.nextBoolean()));
+					TextCollector
+							.Add("<font color=white>" + Name
+									+ " критически ударил по " + e.getName()
+									+ "<br>\n");
+				} else
+					TextCollector.Add("<font color=white>Вжух...</font><br>");
 			} else
 				setAttacking(false);
 		}
 
+	}
+
+	private boolean defended(int type) {
+		int diceroll = random.nextInt(6) + random.nextInt(6)
+				+ random.nextInt(6) + 3;
+		int defendval = 0;
+		switch (type) {
+		case 0:
+			defendval = (int) getBasespeed() + 3;
+			break;
+		case 1:
+			defendval = (int) getHighestSkill(equipment.getRighthand()) + 3;
+			break;
+		}
+		if (diceroll == 17 || diceroll == 18)
+			return false;
+		else if (diceroll == 3 || diceroll == 5 || diceroll <= defendval)
+			return true;
+		else
+			return false;
+	}
+
+	private int getCritical(boolean type) {
+		int dam = 0;
+		if (type) {
+			switch (strength) {
+			case 1:
+				dam = 0;
+				break;
+			case 2:
+				dam = 0;
+				break;
+			case 3:
+				dam = 1;
+				break;
+			case 4:
+				dam = 1;
+				break;
+			case 5:
+				dam = 2;
+				break;
+			case 6:
+				dam = 2;
+				break;
+			case 7:
+				dam = 3;
+				break;
+			case 8:
+				dam = 3;
+				break;
+			case 9:
+				dam = 4;
+				break;
+			case 10:
+				dam = 4;
+				break;
+			case 11:
+				dam = 5;
+				break;
+			case 12:
+				dam = 5;
+				break;
+			case 13:
+				dam = 6;
+				break;
+			case 14:
+				dam = 6;
+				break;
+			case 15:
+				dam = 7;
+				break;
+			case 16:
+				dam = 7;
+				break;
+			case 17:
+				dam = 8;
+				break;
+			case 18:
+				dam = 8;
+				break;
+			case 19:
+				dam = 11;
+				break;
+			case 20:
+				dam = 11;
+				break;
+			}
+			dam += getEquipment().getRighthand().getModstr();
+		} else {
+			switch (strength) {
+			case 1:
+				dam = 1;
+				break;
+			case 2:
+				dam = 1;
+				break;
+			case 3:
+				dam = 2;
+				break;
+			case 4:
+				dam = 2;
+				break;
+			case 5:
+				dam = 3;
+				break;
+			case 6:
+				dam = 3;
+				break;
+			case 7:
+				dam = 4;
+				break;
+			case 8:
+				dam = 4;
+				break;
+			case 9:
+				dam = 5;
+				break;
+			case 10:
+				dam = 6;
+				break;
+			case 11:
+				dam = 7;
+				break;
+			case 12:
+				dam = 8;
+				break;
+			case 13:
+				dam = 11;
+				break;
+			case 14:
+				dam = 12;
+				break;
+			case 15:
+				dam = 13;
+				break;
+			case 16:
+				dam = 14;
+				break;
+			case 17:
+				dam = 17;
+				break;
+			case 18:
+				dam = 18;
+				break;
+			case 19:
+				dam = 19;
+				break;
+			case 20:
+				dam = 20;
+				break;
+			}
+			dam += getEquipment().getRighthand().getModamp();
+		}
+		System.out.println(dam);
+		return dam >= 0 ? dam : 0;
+	}
+
+	private int striked(Weapon righthand) {
+		int diceroll = random.nextInt(6) + random.nextInt(6)
+				+ random.nextInt(6) + 3;
+		int effectiveskill = getHighestSkill(righthand);
+		if (diceroll == 3)
+			return 3;
+		else if (diceroll == 4 || (effectiveskill >= 15 && diceroll == 5)
+				|| (effectiveskill >= 16 && diceroll == 6))
+			return 2;
+		else if (diceroll <= effectiveskill)
+			return 1;
+		else
+			return 0;
+	}
+
+	private int getHighestSkill(Weapon righthand) {
+		int defaltskill = 0;
+		String atribute = righthand.getDefaultskill().split("plus")[0];
+		int modifier = Integer.parseInt(righthand.getDefaultskill().split(
+				"plus")[1]);
+		switch (atribute) {
+		case "agility":
+			defaltskill = agility;
+			break;
+		case "strength":
+			defaltskill = strength;
+			break;
+		case "intelligence":
+			defaltskill = intelligence;
+			break;
+		}
+		defaltskill += modifier;
+		int max = 0;
+		for (String s : righthand.getSkills())
+			if (getSkills().getSkill(s) > max)
+				max = getSkills().getSkill(s);
+		return max > defaltskill ? max : defaltskill;
 	}
 
 	public void damage(int dam) {
@@ -400,6 +625,22 @@ public abstract class EntityLiving extends Entity {
 
 	public void setHpcur(int hpcur) {
 		this.hpcur = hpcur;
+	}
+
+	public float getBasespeed() {
+		return basespeed;
+	}
+
+	public void setBasespeed() {
+		this.basespeed = (agility + health) / 4;
+	}
+
+	public SkillSet getSkills() {
+		return skills;
+	}
+
+	public void setSkills(SkillSet skills) {
+		this.skills = skills;
 	}
 
 }

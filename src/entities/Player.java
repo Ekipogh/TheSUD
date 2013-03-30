@@ -15,19 +15,16 @@ public class Player extends EntityLiving {
 		type = MobType.Agressive;
 		hpmax = health;
 		setHpcur(hpmax);
-//		getEquipment().setRighthand(new Sword());
 	}
 
-	
 	public void tick() {
 		super.tick();
 		if (isUnconscious() && ticks - getUnconscioustick() == 10) {
 			setUnconscious(false);
-			Trigger.trig(0,null);
+			Trigger.trig(0, null);
 		}
 		// TODO healing
-		if (getHpcur() < hpmax && ticks % (int) (60 / hpmax) == 0 && !isAttacking()
-				&& !isUnconscious())
+		if (getHpcur() < hpmax && !isAttacking() && !isUnconscious())
 			setHpcur(getHpcur() + 1);
 	}
 }

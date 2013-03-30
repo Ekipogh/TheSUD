@@ -2,9 +2,7 @@ package sud;
 
 import entities.*;
 import gameworld.Room;
-
 import items.*;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -13,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +38,7 @@ public class SudGame {
 		entities.add(new Ogre(rooms.get(2)));
 		entities.add(new Ogre(rooms.get(2)));
 		entities.add(new OldMan(rooms.get(0)));
-		entities.add(new Door(0,rooms.get(1),rooms.get(3)));
+		entities.add(new Door(0, rooms.get(1), rooms.get(3)));
 		items.add(new Sword().setRoom(rooms.get(0)));
 		Trigger.trig(0, null);
 		commands = new String[4];
@@ -106,7 +105,8 @@ public class SudGame {
 			else if ("хватит".startsWith(command[0].toLowerCase())) {
 				p.setAttacking(false);
 				p.getEnemies().clear();
-			} else if ("инвентарь".startsWith(command[0].toLowerCase())) {
+			} else if ("инвентарь".startsWith(command[0].toLowerCase())
+					|| "рюкзак".startsWith(command[0].toLowerCase())) {
 				TextCollector.Add(p.getInventory().toString());
 			} else if ("экипировка".startsWith(command[0].toLowerCase())) {
 				TextCollector.Add(p.getEquipment().toString());
@@ -143,26 +143,54 @@ public class SudGame {
 						TextCollector.Add("<font color=white>Убить кого?<br>");
 				}
 			} else if ("взять".startsWith(command[0].toLowerCase())) {
-				boolean found = false;
-				for (Item item : items) {
-					if (item.getName().startsWith(command[1].toLowerCase())
-							&& item.getRoom() == p.getRoom()) {
-						found = true;
-						if (p.getInventory().addItem(item)) {
-							item.setRoom(null);
-							TextCollector.Add("<font color=white>Вы положили "
-									+ item.getName() + " в свой рюкзак<br>");
+				if ("все".startsWith(command[1].toLowerCase())
+						|| "всё".startsWith(command[1].toLowerCase())) {
+					Collection<Item> toremove = new HashSet<Item>();
+					for(Item i : items)
+					{
+						if(i.getRoom()==p.getRoom())
+						{
+							if(p.getInventory().addItem(i))
+							{
+								toremove.add(i);
+								i.setRoom(null);
+								TextCollector.Add("<font color=white>Вы положили "+i.getName()+" в свой рюкзак</font><br>");
+							}
+							else
+							{
+								TextCollector.Add("<font color=white>В рюкзаке кончилось место</font><br>");
+								break;
+							}
 						}
-						break;
 					}
+					items.removeAll(toremove);
+				} else {
+					boolean found = false;
+					for (Item item : items) {
+						if (item.getName().startsWith(command[1].toLowerCase())
+								&& item.getRoom() == p.getRoom()) {
+							found = true;
+							if (p.getInventory().addItem(item)) {
+								item.setRoom(null);
+								items.remove(item);
+								TextCollector
+										.Add("<font color=white>Вы положили "
+												+ item.getName()
+												+ " в свой рюкзак<br>");
+							}
+							break;
+						}
+					}
+					if (!found)
+						TextCollector.Add("<font color=white>Взять что?<br>");
 				}
-				if (!found)
-					TextCollector.Add("<font color=white>Взять что?<br>");
 			} else if ("вооружиться".startsWith(command[0].toLowerCase())) {
 				Item toEquip = p.getInventory().getItem(
 						command[1].toLowerCase());
 				Item Equiped = p.getEquipment().getRighthand();
 				if (toEquip != null) {
+					p.getInventory().setItem(null,
+							p.getInventory().getSlot(toEquip));
 					Item tmp = toEquip;
 					toEquip = Equiped;
 					Equiped = tmp;
@@ -172,23 +200,51 @@ public class SudGame {
 				} else
 					TextCollector
 							.Add("<font color=white>Предмет не найден<br></font>");
-			}
-			else if("смотреть".startsWith(command[0].toLowerCase()))
-			{
+			} else if ("смотреть".startsWith(command[0].toLowerCase())) {
 				List<SUDObject> gameobjects = new ArrayList<SUDObject>();
 				gameobjects.addAll(entities);
 				gameobjects.addAll(items);
-				for(int i = 0;i < gameobjects.size();i++)
-				{
+				for (int i = 0; i < gameobjects.size(); i++) {
 					SUDObject so = gameobjects.get(i);
-					if(so.getName().startsWith(command[1].toLowerCase()))
-					{
-						TextCollector.Add("<font color=white>"+so.getDescription()+"<font><br>");
+					if (so.getName().startsWith(command[1].toLowerCase())) {
+						TextCollector.Add("<font color=white>"
+								+ so.getDescription() + "<font><br>");
 						break;
 					}
 				}
-			}
-			else {
+			} else if ("бросить".startsWith(command[0].toLowerCase())) {
+				Item founditem = p.getInventory().getItem(
+						command[1].toLowerCase());
+				if (founditem != null) {
+					p.getInventory().setItem(null,
+							p.getInventory().getSlot(founditem));
+					items.add(founditem.setRoom(p.getRoom()));
+					TextCollector.Add("<font color=white>Вы бросили "
+							+ founditem.getName() + " на землю</font><br>");
+				} else {
+					TextCollector
+							.Add("<font color=white>Бросить что?</font><br>");
+				}
+			} else if ("убрать".startsWith(command[0].toLowerCase())) // TODO
+																		// поглядеть
+																		// как
+																		// будет
+																		// удобнее
+			{
+				if ("оружие".startsWith(command[1].toLowerCase())) {
+					int result = p.getEquipment().itemtoinventory("right_hand",
+							p.getInventory());
+					if (result == 0)
+						TextCollector
+								.Add("<font color=white>Вы убрали свое оружие в рюкзак</font><br>");
+					else if (result == 1)
+						TextCollector
+								.Add("<font color=white>В вашем рюкзаке нет места</font><br>");
+					else if (result == 2)
+						TextCollector
+								.Add("<font color=white>У вас нет экипированного оружия</font><br>");
+				}
+			} else {
 				boolean found = false;
 				for (Entity e1 : entities) {
 					if (e1.getName().startsWith(command[1].toLowerCase())
@@ -208,23 +264,25 @@ public class SudGame {
 	static void loadPlayer() {
 		p = new Player(rooms.get(0));
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(new File("saves/save1.dat")));
+			BufferedReader reader = new BufferedReader(new FileReader(new File(
+					"saves/save1.dat")));
 			String line = null;
-			while((line = reader.readLine())!=null)
-			{
-				if(line.startsWith("name"))
+			while ((line = reader.readLine()) != null) {
+				if (line.startsWith("name"))
 					p.setName(line.split(" ")[1]);
-				else if(line.startsWith("str"))
+				else if (line.startsWith("str"))
 					p.setStrength(Integer.parseInt(line.split(" ")[1]));
-				else if(line.startsWith("int"))
+				else if (line.startsWith("int"))
 					p.setIntelligence(Integer.parseInt(line.split(" ")[1]));
-				else if(line.startsWith("agi"))
+				else if (line.startsWith("agi"))
 					p.setAgility(Integer.parseInt(line.split(" ")[1]));
-				else if(line.startsWith("hea"))
+				else if (line.startsWith("hea"))
 					p.setHealth(Integer.parseInt(line.split(" ")[1]));
-				else if(line.startsWith("rh")){
+				else if (line.startsWith("rh")) {
 					try {
-						p.getEquipment().setRighthand((Weapon)Class.forName(line.split(" ")[1]).newInstance());
+						p.getEquipment().setRighthand(
+								(Weapon) Class.forName(line.split(" ")[1])
+										.newInstance());
 					} catch (InstantiationException e) {
 						e.printStackTrace();
 					} catch (IllegalAccessException e) {
@@ -240,8 +298,7 @@ public class SudGame {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-	
+
 		setUpTrigger();
 		entities.add(p);
 	}
