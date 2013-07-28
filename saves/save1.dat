@@ -1,15 +1,10 @@
-name игрок
-str 11
-agi 10
-hea 15
+name Ектрил
+str 16
+agi 14
+hea 16
 int 10
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-skill short_blades 15
 skill fighting 0
+skill short_blades 10
 skill karate 0
->>>>>>> Combat update
->>>>>>> Combat update
 rh items.Sword
+sex 0

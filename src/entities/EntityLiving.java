@@ -473,27 +473,27 @@ public abstract class EntityLiving extends Entity {
 	}
 
 	private int getHighestSkill(Weapon righthand) {
-		int defaltskill = 0;
+		int defaultskill = 0;
 		String atribute = righthand.getDefaultskill().split("plus")[0];
 		int modifier = Integer.parseInt(righthand.getDefaultskill().split(
 				"plus")[1]);
 		switch (atribute) {
 		case "agility":
-			defaltskill = agility;
+			defaultskill = agility;
 			break;
 		case "strength":
-			defaltskill = strength;
+			defaultskill = strength;
 			break;
 		case "intelligence":
-			defaltskill = intelligence;
+			defaultskill = intelligence;
 			break;
 		}
-		defaltskill += modifier;
+		defaultskill += modifier;
 		int max = 0;
 		for (String s : righthand.getSkills())
 			if (getSkills().getSkill(s) > max)
 				max = getSkills().getSkill(s);
-		return max > defaltskill ? max : defaltskill;
+		return max > defaultskill ? max : defaultskill;
 	}
 
 	public void damage(int dam) {

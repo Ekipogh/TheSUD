@@ -1,0 +1,9 @@
+name игрок
+str 11
+agi 10
+hea 15
+int 10
+skill short_blades 15
+skill fighting 0
+skill karate 0
+rh items.Sword
