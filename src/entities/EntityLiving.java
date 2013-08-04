@@ -3,14 +3,18 @@ package entities;
 import items.Equipment;
 import items.Hand;
 import items.Inventory;
+import items.Shield;
 import items.Weapon;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import utils.MobType;
 import utils.TextCollector;
+import utils.Trigger;
 import gameworld.Room;
 
 public abstract class EntityLiving extends Entity {
@@ -22,7 +26,7 @@ public abstract class EntityLiving extends Entity {
 	protected boolean imortal = false;
 	protected boolean cantdie = false;
 	private EntityLiving attacker;
-	List<EntityLiving> allies = new ArrayList<EntityLiving>();
+	Set<EntityLiving> allies = new HashSet<EntityLiving>();
 	private List<EntityLiving> enemies = new ArrayList<EntityLiving>();
 	private boolean attacking;
 	private boolean unconscious;
@@ -84,23 +88,44 @@ public abstract class EntityLiving extends Entity {
 		setSpawn(r);
 	}
 
+	public EntityLiving() {
+		super();
+		isDead = false;
+		inventory = new Inventory();
+		setEquipment(new Equipment());
+		setSkills(new SkillSet(this));
+		equipment.setRighthand(new Hand());
+	}
+
 	public void setDead(boolean b) {
 		this.isDead = b;
 
 	}
 
 	public void tick() {
-		if (ticks >= Integer.MAX_VALUE)
+		// TODO: заплатки
+		if (ticks >= Integer.MAX_VALUE) // TODO: Нужно ли... Пока нужно(
 			ticks = 0;
 		ticks++;
 
-		if (isAttacking() && !isDead && getEnemies().size() != 0) {
-			strike(getEnemies().get(0));
-
+		if (!isDead && !unconscious) {
+			if (type == MobType.Neutral) { // TODO: allies
+				if (attacked) {
+					attack(attacker);
+				}
+				if (enemies.size() > 0) {
+					strike(enemies.get(0));
+				} else
+					attacking = false;
+			}
+		} else {
+			attacking = false;
+			enemies.clear();
 		}
-		if (isAttacked() && !isAttacking() && type == MobType.Agressive) {
-			attack(getAttacker());
-			attacked = false;
+		if (isUnconscious() && ticks - getUnconscioustick() == 10) {
+			setUnconscious(false);
+			if (getClass() == Player.class)
+				Trigger.trig(0, null);
 		}
 	}
 
@@ -272,34 +297,47 @@ public abstract class EntityLiving extends Entity {
 	}
 
 	public void strike(EntityLiving e) {
-		if (type == MobType.Agressive) {
-			if (!e.isDead() && !e.isUnconscious()) {
-				int hit = striked(this.getEquipment().getRighthand());
-				if (hit == 1) {
+		if (!e.isDead() && !e.isUnconscious()) {
+			int hit = striked(this.getEquipment().getRighthand());
+			if (hit == 1) {
+				if (!e.defended(2)) {
 					TextCollector.Add("<font color=white>" + Name
 							+ " ударил по " + e.getName() + "<br>\n");
 					e.damage(getDamage(random.nextBoolean()));
-				} else if (hit == 2) {
-					if (!e.defended(random.nextInt(2))) {
-						e.damage(getDamage(random.nextBoolean()));
-						TextCollector.Add("<font color=white>" + Name
-								+ " критически ударил по " + e.getName()
-								+ "<br>\n");
-					} else
-						TextCollector.Add("<font color=white>" + e.getName()
-								+ " откразил атаку " + getName() + "<br>\n");
-				} else if (hit == 3) {
-					e.damage(getCritical(random.nextBoolean()));
-					TextCollector
-							.Add("<font color=white>" + Name
-									+ " критически ударил по " + e.getName()
-									+ "<br>\n");
+					if (this.getSkills().increase(
+							getEquipment().getRighthand().getSkills()[0]))
+						TextCollector
+								.Add("<font color = white>"
+										+ this.Name
+										+ " улучшил текущий оружейный навык<br></font>");
 				} else
-					TextCollector.Add("<font color=white>Вжух...</font><br>");
+					TextCollector.Add("<font color=white>" + e.getName()
+							+ " отразил атаку " + getName() + "<br>\n");
+			} else if (hit == 2) {
+				e.damage(getDamage(random.nextBoolean()));
+				TextCollector.Add("<font color=white>" + Name
+						+ " <font color = red>критически</font> ударил по "
+						+ e.getName() + "<br>\n");
+				if (this.getSkills().increase(
+						getEquipment().getRighthand().getSkills()[0]))
+					TextCollector.Add("<font color = white>" + this.Name
+							+ " улучшил текущий оружейный навык<br></font>");
+			} else if (hit == 3) {
+				e.damage(getCritical(random.nextBoolean()));
+				TextCollector.Add("<font color=white>" + Name
+						+ " критически ударил по " + e.getName() + "<br>\n");
+				if (this.getSkills().increase(
+						getEquipment().getRighthand().getSkills()[0]))
+					TextCollector.Add("<font color = white>" + this.Name
+							+ " улучшил текущий оружейный навык<br></font>");
 			} else
-				setAttacking(false);
+				TextCollector.Add("<font color=white>" + this.Name
+						+ " промахнулся по " + e.Name + "</font><br>");
+			if (e.isDead || e.unconscious)
+				enemies.remove(e);
+		} else {
+			enemies.remove(e);
 		}
-
 	}
 
 	private boolean defended(int type) {
@@ -307,6 +345,15 @@ public abstract class EntityLiving extends Entity {
 				+ random.nextInt(6) + 3;
 		int defendval = 0;
 		switch (type) {
+		case 2:
+			Shield sh = this.getEquipment().getLeftHand();
+			if (sh != null) {
+				defendval = 3 + (int) (getSkills().getSkill("shields") / 2)
+						+ sh.getBlockingVal();
+				break;
+			} else
+				type = random.nextInt(2);
+
 		case 0:
 			defendval = (int) getBasespeed() + 3;
 			break;
@@ -316,9 +363,11 @@ public abstract class EntityLiving extends Entity {
 		}
 		if (diceroll == 17 || diceroll == 18)
 			return false;
-		else if (diceroll == 3 || diceroll == 5 || diceroll <= defendval)
+		else if (diceroll == 3 || diceroll == 5 || diceroll <= defendval) {
+			if (type == 2)
+				this.getSkills().increase("shields");
 			return true;
-		else
+		} else
 			return false;
 	}
 
@@ -504,34 +553,24 @@ public abstract class EntityLiving extends Entity {
 					System.err.println("shmip");
 				TextCollector.Add("<font color=white>Здоровье: " + Name + " "
 						+ getHealthHTML() + "<br>\n");
-				if (getHpcur() <= 0 && this.getClass() != Player.class) {
+				if (getHpcur() <= 0) {
 					if (!cantdie) {
 						isDead = true;
-						if (attacked)
-							attacked = false;
-						if (attacking) {
-							attacking = false;
-						}
-						attacker.getEnemies().remove(this);
 						TextCollector.Add("<font color=white>" + Name
-								+ ": Помераю..<br>");
+								+ " испустил дух..<br>");
 					} else {
-						if (attacked)
-							attacked = false;
+						if (this.getClass() == Player.class) {
+							TextCollector
+									.Add("<font color=yellow>Вы бессознания. Вы придете в себя через 10 сек<br>\n");
+							setRoom(spawn);
+						}
+
 						setUnconscious(true);
 						setUnconscioustick(ticks);
 					}
-				} else if (getHpcur() <= 0 && this.getClass() == Player.class) {
-					TextCollector
-							.Add("<font color=yellow>Вы бессознания. Вы придете в себя через 10 сек<br>\n");
-					setRoom(spawn); // TODO change to respawn
-					if (attacked)
-						attacked = false; // room
-					if (attacking) {
+					if (attacking) {// После драки кулаками не машут
 						attacking = false;
 					}
-					setUnconscious(true);
-					setUnconscioustick(ticks);
 				}
 			}
 		} else
@@ -589,10 +628,16 @@ public abstract class EntityLiving extends Entity {
 	}
 
 	public void attack(EntityLiving e) {
-		setAttacking(true);
-		e.setAttacked(true);
-		e.setAttacker(this);
-		getEnemies().add(e);
+		if (!enemies.contains(e)) {
+			attacking = true;
+			attacked = false;
+			if (!e.enemies.contains(this)) {
+				e.setAttacked(true);
+				e.setAttacker(this);
+			}
+			enemies.add(e);
+		}
+		attacker = null;
 	}
 
 	public void setSpawn(Room spawn) {
@@ -643,4 +688,7 @@ public abstract class EntityLiving extends Entity {
 		this.skills = skills;
 	}
 
+	public String toString() {
+		return Name + " " + hpcur + " / " + hpmax;
+	}
 }

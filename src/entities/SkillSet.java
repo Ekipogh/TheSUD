@@ -4,20 +4,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SkillSet {
-	private Map<String, Integer> skillMap = new HashMap<String, Integer>();
+	private Map<String, Float> skillMap = new HashMap<String, Float>();
 
 	public SkillSet(EntityLiving o) {
-		skillMap.put("fighting", 0);
-		skillMap.put("short_blades", o.agility - 4);
-		skillMap.put("karate", 0);
+		skillMap.put("fighting", .0f);
+		skillMap.put("short_blades", o.agility - 4.f);
+		skillMap.put("karate", .0f);
+		skillMap.put("shields", o.agility - 4.f);
 	}
 
 	public int getSkill(String ss) {
-		return skillMap.get(ss);
+		return skillMap.get(ss).intValue();
 	}
 
 	public void setSkill(String string, int i) {
-		skillMap.put(string, i);
+		skillMap.put(string, new Float(i));
 	}
 
 	public String toString() {
@@ -51,7 +52,25 @@ public class SkillSet {
 		return -1;
 	}
 
-	public  Map<String, Integer> getAll() {
+	public Map<String, Float> getAll() {
 		return skillMap;
+	}
+
+	public boolean increase(String skill) {
+		int sc = getSkill(skill);
+		skillMap.put(
+				skill,
+				skillMap.get(skill)
+						+ 1
+						/ (50 * (skillMap.get(skill) + 1) - skillMap.get(skill)));
+		return getSkill(skill) - sc == 1;
+	}
+
+	public Float getSkillf(String skill) {
+		return skillMap.get(skill);
+	}
+
+	public void setSkillf(String skill, float val) {
+		skillMap.put(skill, val);
 	}
 }

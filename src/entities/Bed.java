@@ -4,7 +4,7 @@ import gameworld.Room;
 
 public class Bed extends Entity {
 
-	public Bed() {
+	public Bed() { //TODO: Кровать?...
 		// TODO Auto-generated constructor stub
 	}
 

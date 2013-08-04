@@ -3,6 +3,7 @@ package sud;
 import entities.*;
 import gameworld.Room;
 import items.*;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -40,21 +41,16 @@ public class SudGame {
 	private static int NAME_SCREEN = 1;
 	private static int charcreationscreen = NAME_SCREEN;
 	private static int namescreenphase = 0;
+	private static List<String> commandbuffer = new ArrayList<String>(10);
+	private static int commandbuffer_index = 0;
 
 	public static void main(String[] args) {
 		w = new Window();
 		w.getInputContext().selectInputMethod(new Locale("ru", "RU"));
 		w.input.requestFocus();
 		loadRooms();
-		// loadPlayer();
-
-		// TODO load save or whatever..
-		entities.add(new Ogre(rooms.get(2)));
-		entities.add(new Ogre(rooms.get(2)));
-		entities.add(new OldMan(rooms.get(0)));
-		entities.add(new Door(0, rooms.get(1), rooms.get(3)));
-		items.add(new Sword().setRoom(rooms.get(0)));
-		// Trigger.trig(0, null);
+		load_ents();
+		
 		commands = new String[4];
 		commands[0] = "север";
 		commands[1] = "юг";
@@ -75,8 +71,34 @@ public class SudGame {
 		w.input.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				if (e.getKeyCode() == 10)
+				if (e.getKeyCode() == KeyEvent.VK_ENTER)
 					proceed();
+			}
+		});
+		w.input.addKeyListener(new KeyAdapter() {
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_UP) {
+					w.input.setText(commandbuffer.get(commandbuffer_index));
+					if (commandbuffer_index > 0) {
+						commandbuffer_index--;
+					}
+
+				}
+			}
+		});
+		w.input.addKeyListener(new KeyAdapter() {
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+					w.input.setText(commandbuffer.get(commandbuffer_index));
+					if (commandbuffer_index < commandbuffer.size() - 1) {
+						commandbuffer_index++;
+					}
+
+				}
 			}
 		});
 
@@ -87,19 +109,21 @@ public class SudGame {
 			public void run() {
 				while (running) {
 					System.out.println("Лупаем Ж)");
-					HashSet<Entity> toRemove = new HashSet<Entity>();
-					for (Iterator<Entity> iter = entities.iterator(); iter
-							.hasNext();) {
-						Object elem = iter.next();
-						if (elem instanceof EntityLiving)
-							if (((EntityLiving) elem).isDead()
-									&& !(elem instanceof Player)) {
-								toRemove.add((Entity) elem);
-							}
-					}
-					entities.removeAll(toRemove);
-					for (Entity e : entities) {
-						e.tick();
+					if (gamestage == GameStages.Game) {
+						HashSet<Entity> toRemove = new HashSet<Entity>();
+						for (Iterator<Entity> iter = entities.iterator(); iter
+								.hasNext();) {
+							Object elem = iter.next();
+							if (elem instanceof EntityLiving)
+								if (((EntityLiving) elem).isDead()
+										&& !(elem instanceof Player)) {
+									toRemove.add((Entity) elem);
+								}
+						}
+						entities.removeAll(toRemove);
+						for (Entity e : entities) {
+							e.tick();
+						}
 					}
 					if (!TextCollector.isEmpty())
 						w.out.addString(TextCollector.Get());
@@ -119,8 +143,37 @@ public class SudGame {
 
 	}
 
+	private static void load_ents() {
+		try {
+			BufferedReader save = new BufferedReader(new FileReader(new File(
+					"saves/ents")));
+			String line = null;
+			while ((line = save.readLine()) != null) {
+				Entity e = (Entity) Class.forName(line.split(" ")[0])
+						.newInstance();
+				if (line.contains("Door")) {
+					((Door) e).setRoom(rooms.get(Integer.parseInt(line
+							.split(" ")[1])));
+					((Door) e).setRoom2(rooms.get(Integer.parseInt(line
+							.split(" ")[2])));
+					((Door) e).setDir(Integer.parseInt(line.split(" ")[3]));
+				} else
+					e.setRoom(rooms.get(Integer.parseInt(line.split(" ")[1])));
+				entities.add(e);
+			}
+			save.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	private static void proceed() {
 		String[] command = w.input.getText().split(" ");
+		if (commandbuffer.size() == 10)
+			commandbuffer.remove(0);
+		commandbuffer.add(w.input.getText());
+		commandbuffer_index = commandbuffer.size() - 1;
 		if (gamestage == GameStages.Menu) {
 			if ("продолжить".startsWith(command[0].toLowerCase())) {
 				loadPlayer();
@@ -139,7 +192,8 @@ public class SudGame {
 				show_nametext();
 			}
 		} else if (gamestage == GameStages.Game) {
-			if (command.length == 1 && !command[0].isEmpty()) {
+			if (command.length == 1 && !command[0].isEmpty()
+					&& !p.isUnconscious()) {
 				if ("смотреть".startsWith(command[0].toLowerCase())
 						&& !command[0].toLowerCase().equals("с"))
 					Trigger.trig(0, null);
@@ -159,20 +213,16 @@ public class SudGame {
 						&& !command[0].toLowerCase().equals("в")) {
 					p.setResting(false);
 					TextCollector
-							.Add("<font color=white>Вы перестали отдыхать</font><br>");
+							.Add("<font color=white>Вы перестали отдыхать и встали</font><br>");
 				} else if ("конец".startsWith(command[0].toLowerCase())) {
 					save_and_exit();
 					gamestage = GameStages.Menu;
+					entities.remove(p);
 					TextCollector
 							.Add("<font color=white>Введите соответствующюю команду:<br>"
 									+ "Начать<br>" + "Подолжить</font><br>");
 				} else if ("умения".startsWith(command[0].toLowerCase())) {
-					for (String skill : p.getSkills().getAll().keySet()) {
-						TextCollector
-								.Add("<font color=white>" + skill + " "
-										+ p.getSkills().getSkill(skill)
-										+ "</font><br>");
-					}
+					TextCollector.Add(p.getSkills().toString());
 				} else {
 					boolean found = false;
 					for (int i = 0; i < commands.length; i++) {
@@ -254,17 +304,33 @@ public class SudGame {
 							command[1].toLowerCase());
 					Item Equiped = p.getEquipment().getRighthand();
 					if (toEquip != null) {
-						p.getInventory().setItem(null,
-								p.getInventory().getSlot(toEquip));
-						Item tmp = toEquip;
-						toEquip = Equiped;
-						Equiped = tmp;
-						p.getEquipment().setRighthand((Weapon) Equiped);
+						if (Equiped.getClass() == Hand.class)
+							p.getInventory().setItem(null,
+									p.getInventory().getSlot(toEquip));
+						else
+							p.getInventory().setItem(Equiped,
+									p.getInventory().getSlot(toEquip));
+						p.getEquipment().setRighthand((Weapon) toEquip);
 						TextCollector.Add("<font color=white>Вы взяли "
-								+ Equiped.Имя() + " в правую руку<br></font>");
+								+ toEquip.getName()
+								+ " в правую руку<br></font>");
 					} else
 						TextCollector
 								.Add("<font color=white>Предмет не найден<br></font>");
+				} else if ("экипировать".startsWith(command[0].toLowerCase())) {
+					Item toEquip = p.getInventory().getItem(
+							command[1].toLowerCase());
+					Item Equiped = null;
+					if (toEquip != null) {
+						if (toEquip instanceof Shield) {
+							Equiped = p.getEquipment().getLeftHand();
+							p.getEquipment().setLefthand((Shield) toEquip);
+						}
+						p.getInventory().setItem(Equiped,
+								p.getInventory().getSlot(toEquip));
+						TextCollector.Add("<font color=white>Вы экипировали "
+								+ toEquip.getName() + "<br></font>");
+					}
 				} else if ("смотреть".startsWith(command[0].toLowerCase())) {
 					List<SUDObject> gameobjects = new ArrayList<SUDObject>();
 					gameobjects.addAll(entities);
@@ -290,12 +356,7 @@ public class SudGame {
 						TextCollector
 								.Add("<font color=white>Бросить что?</font><br>");
 					}
-				} else if ("убрать".startsWith(command[0].toLowerCase())) // TODO
-																			// поглядеть
-																			// как
-																			// будет
-																			// удобнее
-				{
+				} else if ("убрать".startsWith(command[0].toLowerCase())) {
 					if ("оружие".startsWith(command[1].toLowerCase())) {
 						int result = p.getEquipment().itemtoinventory(
 								"right_hand", p.getInventory());
@@ -391,7 +452,8 @@ public class SudGame {
 						gamestage = GameStages.Game;
 						setUpTrigger();
 						p.calculateSkills();
-						entities.add(p);
+						p.setBasespeed();
+						entities.add(0, p);
 						Trigger.trig(0, p);
 					}
 					break;
@@ -428,9 +490,15 @@ public class SudGame {
 			save.write("agi " + p.getAgility() + "\r\n");
 			save.write("hea " + p.getHealth() + "\r\n");
 			save.write("int " + p.getIntelligence() + "\r\n");
+			save.write("hpc " + p.getHpcur() + "\r\n");
+			save.write("room " + p.getRoom().getId() + "\r\n");
+			if (p.getEquipment().getLeftHand() != null)
+				save.write("lh "
+						+ p.getEquipment().getLeftHand().getClass().getName()
+						+ "\r\n");
 			for (String skill : p.getSkills().getAll().keySet()) {
 				save.write("skill " + skill + " "
-						+ p.getSkills().getSkill(skill) + "\r\n");
+						+ p.getSkills().getSkillf(skill) + "\r\n");
 			}
 			save.write("rh "
 					+ p.getEquipment().getRighthand().getClass().getName()
@@ -445,6 +513,29 @@ public class SudGame {
 			System.err.println("Could not open save file!");
 			e.printStackTrace();
 		}
+		save_entities();
+	}
+
+	private static void save_entities() {
+		try {
+			BufferedWriter save = new BufferedWriter(new FileWriter(new File(
+					"saves/ents")));
+			for (Entity e : entities) {
+				if (e.getClass() != Player.class)
+					if (e.getClass() == Door.class)
+						save.write(e.getClass().getName() + " "
+								+ e.getRoom().getId() + " "
+								+ ((Door) e).getRoom2().getId() + " "
+								+ ((Door) e).getDir() + "\r\n");
+					else
+						save.write("ent " + e.getClass().getName() + " "
+								+ e.getRoom().getId() + "\r\n");
+			}
+			save.close();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+
 	}
 
 	private static void show_nametext() {
@@ -486,10 +577,41 @@ public class SudGame {
 					p.setAgility(Integer.parseInt(line.split(" ")[1]));
 				else if (line.startsWith("hea"))
 					p.setHealth(Integer.parseInt(line.split(" ")[1]));
-				else if (line.startsWith("rh")) {
+				else if (line.startsWith("room")) {
+					p.setRoom(rooms.get(Integer.parseInt(line.split(" ")[1])));
+				} else if (line.startsWith("hpc")) {
+					p.setHpcur(Integer.parseInt(line.split(" ")[1]));
+				} else if (line.startsWith("rh")) {
 					try {
 						p.getEquipment().setRighthand(
 								(Weapon) Class.forName(line.split(" ")[1])
+										.newInstance());
+					} catch (InstantiationException e) {
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						e.printStackTrace();
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+					}
+				} else if (line.startsWith("lh")) {
+					try {
+						p.getEquipment().setLefthand(
+								(Shield) Class.forName(line.split(" ")[1])
+										.newInstance());
+					} catch (InstantiationException e) {
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						e.printStackTrace();
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+					}
+				} else if (line.startsWith("skill")) {
+					p.getSkills().setSkillf(line.split(" ")[1],
+							Float.parseFloat(line.split(" ")[2]));
+				} else if (line.startsWith("inv")) {
+					try {
+						p.getInventory().addItem(
+								(Item) Class.forName(line.split(" ")[1])
 										.newInstance());
 					} catch (InstantiationException e) {
 						e.printStackTrace();
@@ -508,9 +630,9 @@ public class SudGame {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		p.setBasespeed();
 		setUpTrigger();
-		entities.add(p);
+		entities.add(0, p);
 	}
 
 	private static void setUpTrigger() {

@@ -63,7 +63,4 @@ public abstract class Entity implements SUDObject{
 	public String getDescription() {
 		return description;
 	}
-
-	
-
 }

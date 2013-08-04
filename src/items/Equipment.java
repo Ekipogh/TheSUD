@@ -46,7 +46,10 @@ public class Equipment {
 	public int itemtoinventory(String slot, Inventory inventory) {
 		if (equip.get(slot) != null) {
 			if (inventory.addItem(equip.get(slot))) {
-				equip.put(slot, null);
+				if (slot.equals("right_hand"))
+					equip.put(slot, new Hand());
+				else
+					equip.put(slot, null);
 				return 0;
 			} else {
 				return 1;
@@ -61,5 +64,13 @@ public class Equipment {
 			if (i != null)
 				all.add(i);
 		return all;
+	}
+
+	public Shield getLeftHand() {
+		return (Shield) equip.get("left_hand");
+	}
+
+	public void setLefthand(Shield lefthand) {
+		equip.put("left_hand", lefthand);
 	}
 }

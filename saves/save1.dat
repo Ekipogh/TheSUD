@@ -3,8 +3,13 @@ str 16
 agi 14
 hea 16
 int 10
-skill fighting 0
-skill short_blades 10
-skill karate 0
+hpc 14
+room 2
+lh items.Buckler
+skill shields 10.055422
+skill fighting 0.2512798
+skill short_blades 10.150833
+skill karate 0.0
 rh items.Sword
+inv items.Club
 sex 0
