@@ -50,7 +50,7 @@ public class SudGame {
 		w.input.requestFocus();
 		loadRooms();
 		load_ents();
-		
+
 		commands = new String[4];
 		commands[0] = "север";
 		commands[1] = "юг";
@@ -223,6 +223,10 @@ public class SudGame {
 									+ "Начать<br>" + "Подолжить</font><br>");
 				} else if ("умения".startsWith(command[0].toLowerCase())) {
 					TextCollector.Add(p.getSkills().toString());
+
+				} else if ("команды".startsWith(command[0].toLowerCase())) {
+					TextCollector
+							.Add("<font color = white>смотерть, хватит, инвентарь, рюкзак, экипировка, отдохнуть, встать, конец, убить, взять, вооружиться, экипировать, бросить, убрать оружие<br></font>");
 				} else {
 					boolean found = false;
 					for (int i = 0; i < commands.length; i++) {
