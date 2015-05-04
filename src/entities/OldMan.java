@@ -12,8 +12,8 @@ public class OldMan extends EntityLiving {
 		imortal = true;
 		commands = new String[1];
 		commands[0] = "послушать";
-		triggers = new int[1];
-		triggers[0] = 6;
+		scripts = new String[1];
+		scripts[0] = "empty";
 		type = MobType.NPC;
 	}
 
@@ -23,8 +23,8 @@ public class OldMan extends EntityLiving {
 		imortal = true;
 		commands = new String[1];
 		commands[0] = "послушать";
-		triggers = new int[1];
-		triggers[0] = 6;
+		scripts = new String[1];
+		scripts[0] = "empty";
 		type = MobType.NPC;
 	}
 }

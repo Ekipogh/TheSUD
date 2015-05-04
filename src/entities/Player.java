@@ -7,23 +7,18 @@ public class Player extends EntityLiving {
 
 	private int charpoints = 0;
 	private boolean resting = false;
-	private int Sex;
 
 	public Player(Room r) {
 		super(r);
 		cantdie = true;
 		type = MobType.Neutral;
-		commands = new String[2];
-		commands[0] = "пнуть";
-		triggers = new int[1];
-		triggers[0] = 5;
 		hpmax = health;
 		setHpcur(hpmax);
 	}
 
 	public void tick() {
 		super.tick();
-		
+
 		// TODO healing
 		if (getHpcur() < hpmax && !isAttacking() && !isUnconscious()) {
 			setHpcur(getHpcur() + (resting ? 3 : 1));
@@ -56,5 +51,11 @@ public class Player extends EntityLiving {
 	public void calculateSkills() {
 		this.setSkills(null);
 		this.setSkills(new SkillSet(this));
+	}
+
+	public void Sleep() {
+		setSleeping(true);
+		actiontick = 30;
+		TextCollector.getInstance().Add("<font color = white>Вы разделись и легли спать</font><br>");
 	}
 }

@@ -1,5 +1,6 @@
 package entities;
 
+import sud.SudGame;
 import gameworld.Room;
 
 public class Door extends Entity {
@@ -11,10 +12,6 @@ public class Door extends Entity {
 	public Door() {
 		super();
 		this.Name = "врата";
-		commands = new String[1];
-		commands[0] = "открыть"; // TODO redo!!!!!!!!!
-		triggers = new int[1];
-		triggers[0] = 7;
 	}
 
 	public Door(int direction, Room r1, Room r2) {
@@ -23,10 +20,6 @@ public class Door extends Entity {
 		this.room2 = r2;
 		this.room2 = r2;
 		this.direction = direction;
-		commands = new String[1];
-		commands[0] = "открыть"; // TODO redo!!!!!!!!!
-		triggers = new int[1];
-		triggers[0] = 7;
 	}
 
 	public void open() {
@@ -35,6 +28,12 @@ public class Door extends Entity {
 			room2.setExit(direction == 2 || direction == 4 ? direction - 1
 					: direction + 1, getRoom());
 		}
+	}
+
+	public void command(String c) {
+		if (c.equals("открыть"))
+			open();
+		SudGame.text.Add(this.Name+" открыты");
 	}
 
 	public boolean isOpened() {

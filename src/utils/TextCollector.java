@@ -1,28 +1,36 @@
 package utils;
 
 public class TextCollector {
-	private static String Text = "";
-	public TextCollector() {
-		
-	}
-	
-	public static void Clear()
-	{
+	private static TextCollector instance;
+	private String Text;;
+	private TextCollector() {
 		Text = "";
 	}
-	
-	public static void Add(String add)
+	public static TextCollector getInstance(){
+		if(instance==null)
+		{
+			instance = new TextCollector();
+			return instance;
+		}else
+			return instance;
+	}
+	public void Clear()
 	{
-		Text+=add;
+		instance.Text = "";
 	}
 	
-	public static String Get()
+	public void Add(String add)
 	{
-		return Text;
+		instance.Text+=add;
+	}
+	
+	public String Get()
+	{
+		return instance.Text;
 	}
 
-	public static boolean isEmpty() {
-		return Text.isEmpty();
+	public boolean isEmpty() {
+		return instance.Text.isEmpty();
 	}
 
 }

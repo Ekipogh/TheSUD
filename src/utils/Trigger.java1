@@ -28,66 +28,69 @@ public class Trigger {
 	}
 
 	public static void trig(int n, Object caller) {
+		TextCollector text = TextCollector.getInstance();
 		switch (n) {
 		case 0:
-			TextCollector.Add("<font color=white>" + p.getRoom().getName()
+			text.Add("<font color=white>" + p.getRoom().getName()
 					+ "<br>\n" + p.getRoom().InitText() + "<br>\n");
-			TextCollector.Add("<font color=white>Выходы: "
+			text.Add("<font color=white>Выходы: "
 					+ "<font color=yellow>" + p.getRoom().exitstext()
 					+ "<br>\n");
-			TextCollector.Add("<font color = white>Здоровье: "
+			text.Add("<font color = white>Здоровье: "
 					+ p.getHealthHTML() + "<br>\n");
 			for (Entity e : entities) {
 				if (e != p && e.getRoom() == p.getRoom())
-					TextCollector.Add("<font color = red>" + e.getName()
+					text.Add("<font color = red>" + e.getName()
 							+ " стоит здесь.<br>\n");
 			}
 			for (Item item : items) {
 				if (item.getRoom() == p.getRoom())
-					TextCollector.Add("<font color = red>" + item.getName()
+					text.Add("<font color = red>" + item.getName()
 							+ " лежит здесь.<br>\n");
 			}
 			break;
 		case 1:
 			if (p.getRoom().getExit(NORTH) != null) {
+				p.getRoom().command("leave");
 				p.setRoom(p.getRoom().getExit(NORTH));
+				p.getRoom().command("enter");
 				Trigger.trig(0, null);
 			} else
-				TextCollector.Add("<font color=white>Пойти куда?<br>\n");
+				text.Add("<font color=white>Пойти куда?<br>\n");
 			break;
 		case 2:
 			if (p.getRoom().getExit(SOUTH) != null) {
 				p.setRoom(p.getRoom().getExit(SOUTH));
 				Trigger.trig(0, null);
 			} else
-				TextCollector.Add("<font color=white>Пойти куда?<br>\n");
+				text.Add("<font color=white>Пойти куда?<br>\n");
 			break;
 		case 3:
 			if (p.getRoom().getExit(EAST) != null) {
 				p.setRoom(p.getRoom().getExit(EAST));
 				Trigger.trig(0, null);
 			} else
-				TextCollector.Add("<font color=white>Пойти куда?<br>\n");
+				text.Add("<font color=white>Пойти куда?<br>\n");
 			break;
 		case 4:
 			if (p.getRoom().getExit(WEST) != null) {
 				p.setRoom(p.getRoom().getExit(WEST));
 				Trigger.trig(0, null);
 			} else
-				TextCollector.Add("<font color=white>Пойти куда?<br>\n");
+				text.Add("<font color=white>Пойти куда?<br>\n");
 			break;
 		case 5:
-			TextCollector.Add("<font color=white>Ауч!<br>\n");
+			text.Add("<font color=white>Ауч!<br>\n");
 			break;
 		case 6:
-			TextCollector
+			text
 					.Add("<font color=white>Старик: говорит \"приветствие игрока\"<br>\n");
 			break;
 		case 7:
 			Script.script(1, caller, SudGame.rooms.get(1));
 			break;
 		default:
-			TextCollector.Add("Упс нет такого тригера Trigger number = " + n
+			text.Add("Упс нет такого тригера Trigger number = " + n
 					+ "\n");
 		}
 	}

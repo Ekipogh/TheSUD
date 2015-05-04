@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import sud.SudGame;
 import utils.MobType;
 import utils.TextCollector;
-import utils.Trigger;
 import gameworld.Room;
 
 public abstract class EntityLiving extends Entity {
@@ -36,6 +36,17 @@ public abstract class EntityLiving extends Entity {
 	protected int strength;
 	protected int agility;
 	private SkillSet skills;
+	protected int actiontick;
+	private boolean sleeping;
+	protected int Sex;
+
+	public int getSex() {
+		return Sex;
+	}
+
+	public void setSex(int sex) {
+		Sex = sex;
+	}
 
 	public int getStrength() {
 		return strength;
@@ -104,10 +115,15 @@ public abstract class EntityLiving extends Entity {
 
 	public void tick() {
 		// TODO: заплатки
-		if (ticks >= Integer.MAX_VALUE) // TODO: Нужно ли... Пока нужно(
-			ticks = 0;
-		ticks++;
-
+		if (getTicks() >= Integer.MAX_VALUE) // TODO: Нужно ли... Пока нужно(
+			setTicks(0);
+		setTicks(getTicks() + 1);
+		if (sleeping) {
+			actiontick--;
+			if (actiontick == 0) {
+				sleeping = false;
+			}
+		}
 		if (!isDead && !unconscious) {
 			if (type == MobType.Neutral) { // TODO: allies
 				if (attacked) {
@@ -122,10 +138,10 @@ public abstract class EntityLiving extends Entity {
 			attacking = false;
 			enemies.clear();
 		}
-		if (isUnconscious() && ticks - getUnconscioustick() == 10) {
+		if (isUnconscious() && getTicks() - getUnconscioustick() == 10) {
 			setUnconscious(false);
 			if (getClass() == Player.class)
-				Trigger.trig(0, null);
+				SudGame.updateOut();
 		}
 	}
 
@@ -297,42 +313,41 @@ public abstract class EntityLiving extends Entity {
 	}
 
 	public void strike(EntityLiving e) {
+		TextCollector text = TextCollector.getInstance();
 		if (!e.isDead() && !e.isUnconscious()) {
 			int hit = striked(this.getEquipment().getRighthand());
 			if (hit == 1) {
 				if (!e.defended(2)) {
-					TextCollector.Add("<font color=white>" + Name
-							+ " ударил по " + e.getName() + "<br>\n");
+					text.Add("<font color=white>" + Name + " ударил по "
+							+ e.getName() + "<br>\n");
 					e.damage(getDamage(random.nextBoolean()));
 					if (this.getSkills().increase(
 							getEquipment().getRighthand().getSkills()[0]))
-						TextCollector
-								.Add("<font color = white>"
-										+ this.Name
-										+ " улучшил текущий оружейный навык<br></font>");
+						text.Add("<font color = white>" + this.Name
+								+ " улучшил текущий оружейный навык<br></font>");
 				} else
-					TextCollector.Add("<font color=white>" + e.getName()
+					text.Add("<font color=white>" + e.getName()
 							+ " отразил атаку " + getName() + "<br>\n");
 			} else if (hit == 2) {
 				e.damage(getDamage(random.nextBoolean()));
-				TextCollector.Add("<font color=white>" + Name
+				text.Add("<font color=white>" + Name
 						+ " <font color = red>критически</font> ударил по "
 						+ e.getName() + "<br>\n");
 				if (this.getSkills().increase(
 						getEquipment().getRighthand().getSkills()[0]))
-					TextCollector.Add("<font color = white>" + this.Name
+					text.Add("<font color = white>" + this.Name
 							+ " улучшил текущий оружейный навык<br></font>");
 			} else if (hit == 3) {
 				e.damage(getCritical(random.nextBoolean()));
-				TextCollector.Add("<font color=white>" + Name
-						+ " критически ударил по " + e.getName() + "<br>\n");
+				text.Add("<font color=white>" + Name + " критически ударил по "
+						+ e.getName() + "<br>\n");
 				if (this.getSkills().increase(
 						getEquipment().getRighthand().getSkills()[0]))
-					TextCollector.Add("<font color = white>" + this.Name
+					text.Add("<font color = white>" + this.Name
 							+ " улучшил текущий оружейный навык<br></font>");
 			} else
-				TextCollector.Add("<font color=white>" + this.Name
-						+ " промахнулся по " + e.Name + "</font><br>");
+				text.Add("<font color=white>" + this.Name + " промахнулся по "
+						+ e.Name + "</font><br>");
 			if (e.isDead || e.unconscious)
 				enemies.remove(e);
 		} else {
@@ -546,27 +561,27 @@ public abstract class EntityLiving extends Entity {
 	}
 
 	public void damage(int dam) {
+		TextCollector text = TextCollector.getInstance();
 		if (!imortal) {
 			if (getHpcur() > 0) {
 				setHpcur(getHpcur() - dam);
 				if (isUnconscious() || isDead())
 					System.err.println("shmip");
-				TextCollector.Add("<font color=white>Здоровье: " + Name + " "
+				text.Add("<font color=white>Здоровье: " + Name + " "
 						+ getHealthHTML() + "<br>\n");
 				if (getHpcur() <= 0) {
 					if (!cantdie) {
 						isDead = true;
-						TextCollector.Add("<font color=white>" + Name
+						text.Add("<font color=white>" + Name
 								+ " испустил дух..<br>");
 					} else {
 						if (this.getClass() == Player.class) {
-							TextCollector
-									.Add("<font color=yellow>Вы бессознания. Вы придете в себя через 10 сек<br>\n");
+							text.Add("<font color=yellow>Вы бессознания. Вы придете в себя через 10 сек<br>\n");
 							setRoom(spawn);
 						}
 
 						setUnconscious(true);
-						setUnconscioustick(ticks);
+						setUnconscioustick(getTicks());
 					}
 					if (attacking) {// После драки кулаками не машут
 						attacking = false;
@@ -574,7 +589,7 @@ public abstract class EntityLiving extends Entity {
 				}
 			}
 		} else
-			TextCollector.Add("<font color=yellow>" + Name
+			text.Add("<font color=yellow>" + Name
 					+ "совершенно не пострадал.<br>\n");
 	}
 
@@ -690,5 +705,13 @@ public abstract class EntityLiving extends Entity {
 
 	public String toString() {
 		return Name + " " + hpcur + " / " + hpmax;
+	}
+
+	public boolean isSleeping() {
+		return sleeping;
+	}
+
+	public void setSleeping(boolean sleeping) {
+		this.sleeping = sleeping;
 	}
 }

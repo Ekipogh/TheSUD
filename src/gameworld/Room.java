@@ -1,35 +1,65 @@
 package gameworld;
 
+import sud.SudGame;
 import utils.TextCollector;
-import utils.Trigger;
 
 public class Room {
 	private int Id;
 	String initText;
 	String[] commands;
-	int[] triggers;
+	String[] scripts;
 	Room[] exits = new Room[4];
 	private String name;;
 
-	public Room(int id, String name, String initText, String[] commands,
-			int[] triggers) {
+	public String[] getCommands() {
+		return commands;
+	}
+
+	public String[] getScripts() {
+		return scripts;
+	}
+
+	public Room(int id, String name, String inittext, String[] comms,
+			String[] scripts) {
 		this.Id = id;
 		this.setName(name);
+		this.initText = inittext;
+		this.commands = comms;
+		this.scripts = scripts;
+	}
+
+	public void setInitText(String initText) {
 		this.initText = initText;
-		this.commands = commands;
-		this.triggers = triggers;
+	}
+
+	public Room(int id) {
+		this.Id = id;
+		this.name = "Unnamed";
+		initText = "Enter description";
+		commands = new String[2];
+		scripts = new String[2];
+		scripts[0] = "empty";
+		scripts[1] = "empty";
+		commands[0] = "enter";
+		commands[1] = "leave";
+	}
+
+	public Room[] getExits() {
+		return exits;
 	}
 
 	public void command(String c) {
+		TextCollector text = TextCollector.getInstance();
 		boolean found = false;
 		for (int i = 0; i < commands.length; i++) {
 			if (commands[i].startsWith(c.toLowerCase())) {
 				found = true;
-				Trigger.trig(triggers[i], this);
+				SudGame.execute(scripts[i], this);
+				// Trigger.trig(triggers[i], this);
 			}
 		}
 		if (!found)
-			TextCollector.Add("<font color = white>Что?<br>\n");
+			text.Add("<font color = white>Что?<br>\n");
 	}
 
 	public String InitText() {
@@ -65,11 +95,28 @@ public class Room {
 		this.name = name;
 	}
 
+	public String toString() {
+		return name;
+	}
+
 	public void setExit(int i, Room ex) {
-		exits[0] = ex;
+		exits[i] = ex;
 	}
 
 	public int getId() {
 		return Id;
+	}
+	
+	public boolean equals(Room r)
+	{
+		return this.Id==r.Id;
+	}
+
+	public void setCommands(String[] commands) {
+		this.commands = commands;
+	}
+
+	public void setScripts(String[] scripts) {
+		this.scripts = scripts;
 	}
 }
